@@ -9,13 +9,13 @@ class TestFunRandomName:
     def fun_random_name(self) -> FunRandomName:
         return FunRandomName()
 
-    def test_add_random_method_without_duplicate(self, fun_random_name):
+    def test_add_names_method_without_duplicate(self, fun_random_name):
         name1: Name = Name("Кот", Gender.MALE)
         name2: Name = Name("Кошка", Gender.FEMALE)
         fun_random_name.add_names(name1,name2)
         names_size = getattr(fun_random_name, '_FunRandomName__names')
         assert len(names_size) == 2
-    def test_add_random_method_with_duplicate(self,fun_random_name):
+    def test_add_names_method_with_duplicate(self,fun_random_name):
         name1 = Name("Кот",Gender.MALE)
         name2 = Name("Кот",Gender.MALE)
         fun_random_name.add_names(name1,name2)
