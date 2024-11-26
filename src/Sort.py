@@ -32,6 +32,16 @@ class Sort:
         self.__quick_sort_helper(array, low, e)
         self.__quick_sort_helper(array, s, high)
 
+    def insertion_sort(self, array):
+        for i in range(len(array)):
+            j = i - 1
+            key = array[i]
+            while array[j] > key and j >= 0:
+                array[j + 1] = array[j]
+                j -= 1
+            array[j + 1] = key
+        return array
+
     def merge_sort(self, array):
         self.__mergeSort(array, 0, len(array) - 1)
         return array
@@ -44,8 +54,8 @@ class Sort:
         self.__mergeSort(array, l, mid)
         self.__mergeSort(array, mid + 1, r)
 
-        left = array[l : mid + 1]
-        right = array[mid + 1 : r + 1]
+        left = array[l: mid + 1]
+        right = array[mid + 1: r + 1]
 
         i = j = 0
         k = l
