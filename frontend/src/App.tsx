@@ -1,14 +1,10 @@
-import Button from "./components/Button";
-import { Check } from "lucide-react";
+import Form from "./components/Form";
 
 function App() {
   return (
     <>
       <main className="flex h-dvh w-dvw items-center justify-center">
-        <Button>
-          <Check />
-          Validate
-        </Button>
+        <Form></Form>
       </main>
     </>
   );
