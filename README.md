@@ -1,4 +1,4 @@
 # Task
 
-[ ] Create Button component
-[ ] Create Form component
+- [ ] Create Button component
+- [ ] Create Form component
