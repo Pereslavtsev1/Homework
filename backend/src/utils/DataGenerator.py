@@ -212,7 +212,7 @@ class URLGenerator(DataGenerator):
 class VehicleNumberGenerator(DataGenerator):
     def __init__(self):
         super().__init__(DataType.VEHICLE_NUMBER)
-        self.russian_letters = 'ВАЕКМНОРСТУХ'
+        self.russian_letters = 'АВЕКМНОРСТУХ'
 
     def generate_data(self, valid: bool):
         letters1 = self.fake_ru.bothify(
