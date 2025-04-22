@@ -69,7 +69,8 @@ class PassportGenerator(DataGenerator):
 
     def generate_data(self, valid: bool):
         return (
-            (lambda s: s[:4].replace(" ", "") + s[4:])(self.fake_ru.passport_number())
+            (lambda s: s[:4].replace(" ", "") +
+             s[4:])(self.fake_ru.passport_number())
             if valid
             else f"{''.join(random.choice('123456789') for _ in range(4))} {''.join(random.choice('ABCDEF') for _ in range(6))}"
         )
@@ -127,7 +128,7 @@ class BankCardGenerator(DataGenerator):
     def generate_data(self, valid: bool):
         credit_card = self.fake_ru.credit_card_number()
         formatted_credit_card = " ".join(
-            credit_card[i : i + 4] for i in range(0, len(credit_card), 4)
+            credit_card[i: i + 4] for i in range(0, len(credit_card), 4)
         )
         return (
             formatted_credit_card
@@ -136,13 +137,19 @@ class BankCardGenerator(DataGenerator):
         )
 
 
-# TODO: change format
 class IBANGenerator(DataGenerator):
     def __init__(self):
         super().__init__(DataType.IBAN)
 
     def generate_data(self, valid: bool):
-        return self.fake_ru.iban() if valid else "GBXX ABCD 1234 5678"
+        country_code = "RU"
+        check_digit = f"{random.randint(0, 999999):06d}"
+        bank_code = f"{random.randint(10000000, 99999999):08d}"
+        account_number = f"{random.randint(10000000, 99999999):08d}"
+        iban = f"{country_code}{check_digit}{bank_code}{account_number}"
+        return " ".join(
+            iban[i: i + 4] for i in range(0, len(iban), 4)
+        ) if valid else "GBXX ABCD 1234 5678"
 
 
 class PaymentAmountGenerator(DataGenerator):
@@ -151,7 +158,8 @@ class PaymentAmountGenerator(DataGenerator):
 
     def generate_data(self, valid: bool):
         return (
-            "{:.2f}".format(self.fake_ru.pyfloat(positive=True, max_value=10000))
+            "{:.2f}".format(self.fake_ru.pyfloat(
+                positive=True, max_value=10000))
             if valid
             else "{:.2f}".format(self.fake_ru.pyfloat(positive=False, max_value=0))
         )
@@ -201,14 +209,19 @@ class URLGenerator(DataGenerator):
         return self.fake_ru.url() if valid else "not.a.url"
 
 
-# FIX: type
 class VehicleNumberGenerator(DataGenerator):
     def __init__(self):
         super().__init__(DataType.VEHICLE_NUMBER)
+        self.russian_letters = 'АВЕКМНОРСТУХ'
 
     def generate_data(self, valid: bool):
+        letters1 = self.fake_ru.bothify(
+            text='?', letters=self.russian_letters).upper()
+        digits = f"{random.randint(100, 999)}"
+        letters2 = self.fake_ru.bothify(
+            text='??', letters=self.russian_letters).upper()
         return (
-            self.fake_ru.license_plate_car()
+            f"{letters1}{digits}{letters2}"
             if valid
             else "".join(random.choice("!@#$%^&*()") for _ in range(9))
         )
@@ -230,7 +243,6 @@ class MACAddressGenerator(DataGenerator):
         return self.fake_ru.mac_address() if valid else self.fake_ru.mac_address()[5:]
 
 
-# TODO: fake coordinate generation
 class CoordinatesGenerator(DataGenerator):
     def __init__(self):
         super().__init__(DataType.COORDINATES)

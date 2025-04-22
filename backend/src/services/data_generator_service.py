@@ -21,6 +21,7 @@ from src.utils.DataGenerator import (
     VehicleNumberGenerator,
     PasswordGenerator,
     MACAddressGenerator,
+    CoordinatesGenerator
 )
 from src.utils.DataType import DataType
 
@@ -47,6 +48,7 @@ class DataGeneratorService:
             VehicleNumberGenerator(),
             PasswordGenerator(),
             MACAddressGenerator(),
+            CoordinatesGenerator()
         ]
 
     def generate_data(self, type: DataType, valid: bool):
@@ -54,3 +56,4 @@ class DataGeneratorService:
             if i.data_type.__eq__(type):
                 return i.generate_data(valid)
         return "Error"
+# jjjj
