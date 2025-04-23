@@ -104,7 +104,7 @@ class DataGeneratorFactory:
             check_digit = f"{random.randint(0, 999999):06d}"
             bank_code = f"{random.randint(10000000, 99999999):08d}  "
             account_number = f"{random.randint(10000000, 99999999)  :08d}"
-            iban = f"{country_code}{check_digit}{bank_code} {account_number}"
+            iban = f"{country_code}{check_digit}{bank_code}{account_number}"
             return DataGenerator(
                 DataType.IBAN,
                 lambda valid: " ".join(iban[i: i + 4] for i in range(0, len(iban), 4))
@@ -151,13 +151,11 @@ class DataGeneratorFactory:
 
         elif type == DataType.VEHICLE_NUMBER:
             russian_letters = 'АВЕКМНОРСТУХ'
-            letters1 = fake_ru.bothify(
-            text='?', letters=russian_letters).upper()
+            letters1 = fake_ru.bothify(text='?', letters=russian_letters).upper()
             digits = f"{random.randint(100, 999)}"
-            letters2 = fake_ru.bothify(
-            text='??', letters=russian_letters).upper()
+            letters2 = fake_ru.bothify(text='??', letters=russian_letters).upper()
             return DataGenerator(
-                DataType.TIME,
+                DataType.VEHICLE_NUMBER,
                 lambda valid: f"{letters1}{digits}{letters2}"
                 if valid
                 else "".join(random.choice("!@#$%^&*()") for _ in range(9)),
