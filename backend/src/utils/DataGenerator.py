@@ -29,11 +29,14 @@ class DataGeneratorFactory:
                 else fake_ru.email().replace("@", ""),
             )
         elif type == DataType.PHONE:
+            phone = fake_ru.phone_number()
+            digits = "".join(filter(str.isdigit, phone))[1:]
+            print(phone)
             return DataGenerator(
                 DataType.PHONE,
-                lambda valid: fake_ru.phone_number()
+                lambda valid: f"+7 ({digits[:3]}) {digits[3:6]} {digits[6:8]} {digits[8:10]}"
                 if valid
-                else fake_ru.phone_number()[:2],
+                else fake_ru.phone_number()[2:],
             )
         elif type == DataType.ADDRESS:
             return DataGenerator(
@@ -98,16 +101,14 @@ class DataGeneratorFactory:
                 else "4" + "".join(random.choice("ABCDEF") for _ in range(15)),
             )
 
-       
         elif type == DataType.IBAN:
-            country_code = "RU"
-            check_digit = f"{random.randint(0, 999999):06d}"
-            bank_code = f"{random.randint(10000000, 99999999):08d}  "
-            account_number = f"{random.randint(10000000, 99999999)  :08d}"
-            iban = f"{country_code}{check_digit}{bank_code}{account_number}"
+            random_bban_digits = fake_ru.numerify(text="####################")
+            formatted_bban = " ".join(
+                [random_bban_digits[i : i + 4] for i in range(0, 20, 4)]
+            )
             return DataGenerator(
                 DataType.IBAN,
-                lambda valid: " ".join(iban[i: i + 4] for i in range(0, len(iban), 4))
+                lambda valid: f"RU02 {formatted_bban}"
                 if valid
                 else fake_ru.numerify(text="##########"),
             )
@@ -150,10 +151,10 @@ class DataGeneratorFactory:
             )
 
         elif type == DataType.VEHICLE_NUMBER:
-            russian_letters = 'АВЕКМНОРСТУХ'
-            letters1 = fake_ru.bothify(text='?', letters=russian_letters).upper()
+            russian_letters = "АВЕКМНОРСТУХ"
+            letters1 = fake_ru.bothify(text="?", letters=russian_letters).upper()
             digits = f"{random.randint(100, 999)}"
-            letters2 = fake_ru.bothify(text='??', letters=russian_letters).upper()
+            letters2 = fake_ru.bothify(text="??", letters=russian_letters).upper()
             return DataGenerator(
                 DataType.VEHICLE_NUMBER,
                 lambda valid: f"{letters1}{digits}{letters2}"
