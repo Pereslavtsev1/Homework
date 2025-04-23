@@ -98,11 +98,16 @@ class DataGeneratorFactory:
                 else "4" + "".join(random.choice("ABCDEF") for _ in range(15)),
             )
 
-        # TODO: change format
+       
         elif type == DataType.IBAN:
+            country_code = "RU"
+            check_digit = f"{random.randint(0, 999999):06d}"
+            bank_code = f"{random.randint(10000000, 99999999):08d}  "
+            account_number = f"{random.randint(10000000, 99999999)  :08d}"
+            iban = f"{country_code}{check_digit}{bank_code} {account_number}"
             return DataGenerator(
                 DataType.IBAN,
-                lambda valid: fake_ru.iban()
+                lambda valid: " ".join(iban[i: i + 4] for i in range(0, len(iban), 4))
                 if valid
                 else fake_ru.numerify(text="##########"),
             )
@@ -144,11 +149,16 @@ class DataGeneratorFactory:
                 DataType.URL, lambda valid: fake_ru.url() if valid else "not.a.url"
             )
 
-        #  FIX: incorect type format
         elif type == DataType.VEHICLE_NUMBER:
+            russian_letters = 'АВЕКМНОРСТУХ'
+            letters1 = fake_ru.bothify(
+            text='?', letters=russian_letters).upper()
+            digits = f"{random.randint(100, 999)}"
+            letters2 = fake_ru.bothify(
+            text='??', letters=russian_letters).upper()
             return DataGenerator(
                 DataType.TIME,
-                lambda valid: fake_ru.license_plate_car()
+                lambda valid: f"{letters1}{digits}{letters2}"
                 if valid
                 else "".join(random.choice("!@#$%^&*()") for _ in range(9)),
             )
@@ -165,7 +175,6 @@ class DataGeneratorFactory:
                 else fake_ru.mac_address()[5:],
             )
 
-        #  TODO: fake coordinate genertion
         elif type == DataType.COORDINATES:
             return DataGenerator(
                 DataType.COORDINATES,
