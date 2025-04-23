@@ -1,255 +1,175 @@
-from abc import abstractmethod
+from typing import Callable
+
 from faker import Faker
+import random
 from src.utils.DataType import DataType
 
-import random
+fake_ru = Faker("ru_RU")
+fake_en = Faker("en_US")
 
 
 class DataGenerator:
     def __init__(
         self,
         data_type: DataType,
+        generate_data: Callable[[bool], str],
     ):
         self.data_type = data_type
-        self.fake_ru = Faker("ru_RU")
-        self.fake_en = Faker("en_US")
-
-    @abstractmethod
-    def generate_data(self, valid: bool) -> str:
-        pass
+        self.generate_data = generate_data
 
 
-class EmailGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.EMAIL)
+class DataGeneratorFactory:
+    @staticmethod
+    def createDataGenerator(type: DataType) -> DataGenerator:
+        if type == DataType.EMAIL:
+            return DataGenerator(
+                DataType.EMAIL,
+                lambda valid: fake_ru.email()
+                if valid
+                else fake_ru.email().replace("@", ""),
+            )
+        elif type == DataType.PHONE:
+            return DataGenerator(
+                DataType.PHONE,
+                lambda valid: fake_ru.phone_number()
+                if valid
+                else fake_ru.phone_number()[:2],
+            )
+        elif type == DataType.ADDRESS:
+            return DataGenerator(
+                DataType.ADDRESS,
+                lambda valid: fake_ru.address()
+                if valid
+                else f"Inv@lid Addr#ss {fake_ru.numerify('####')}",
+            )
+        elif type == DataType.BIRTHDATE:
+            return DataGenerator(
+                DataType.BIRTHDATE,
+                lambda valid: str(fake_ru.date_of_birth().strftime("%d.%m.%Y"))
+                if valid
+                else str(fake_ru.date_of_birth()),
+            )
 
-    def generate_data(self, valid: bool):
-        return self.fake_ru.email() if valid else self.fake_ru.email().replace("@", "")
+        elif type == DataType.PASSPORT:
+            return DataGenerator(
+                DataType.PASSPORT,
+                lambda valid: (lambda s: s[:4].replace(" ", "") + s[4:])(
+                    fake_ru.passport_number()
+                )
+                if valid
+                else fake_ru.numerify("########"),
+            )
+        elif type == DataType.POSTCODE:
+            return DataGenerator(
+                DataType.POSTCODE,
+                lambda valid: fake_ru.postcode()
+                if valid
+                else f"{''.join(random.choice('ABCDEF') for _ in range(6))}",
+            )
+        elif type == DataType.COUNTRY:
+            return DataGenerator(
+                DataType.COUNTRY,
+                lambda valid: fake_en.country() if valid else "Not a Country",
+            )
+        elif type == DataType.SNILS:
+            snils = fake_ru.snils()
+            return DataGenerator(
+                DataType.SNILS,
+                lambda valid: f"{snils[:3]}-{snils[3:6]}-{snils[6:9]} {snils[9:]}"
+                if valid
+                else fake_ru.numerify(text="########"),
+            )
+        elif type == DataType.INN:
+            return DataGenerator(
+                DataType.INN,
+                lambda valid: fake_ru.businesses_inn()
+                if valid
+                else fake_ru.numerify(text="#######"),
+            )
+        elif type == DataType.BANK_CARD:
+            credit_card = fake_ru.credit_card_number()
+            formatted_credit_card = " ".join(
+                credit_card[i : i + 4] for i in range(0, len(credit_card), 4)
+            )
+            return DataGenerator(
+                DataType.BANK_CARD,
+                lambda valid: formatted_credit_card
+                if valid
+                else "4" + "".join(random.choice("ABCDEF") for _ in range(15)),
+            )
 
+        # TODO: change format
+        elif type == DataType.IBAN:
+            return DataGenerator(
+                DataType.IBAN,
+                lambda valid: fake_ru.iban()
+                if valid
+                else fake_ru.numerify(text="##########"),
+            )
 
-class PhoneGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.PHONE)
+        elif type == DataType.PAYMENT_AMOUNT:
+            return DataGenerator(
+                DataType.PAYMENT_AMOUNT,
+                lambda valid: "{:.2f}".format(
+                    fake_ru.pyfloat(positive=True, max_value=10000)
+                )
+                if valid
+                else "{:.2f}".format(fake_ru.pyfloat(positive=False, max_value=0)),
+            )
+        elif type == DataType.VIN:
+            return DataGenerator(
+                DataType.VIN,
+                lambda valid: fake_ru.vin()
+                if valid
+                else "INVALID_V" + "".join(random.choice("O0") for _ in range(5)),
+            )
+        elif type == DataType.ORDER_DATE:
+            return DataGenerator(
+                DataType.ORDER_DATE,
+                lambda valid: str(
+                    fake_ru.date_between(start_date="-1y", end_date="today")
+                )
+                if valid
+                else f"{random.randint(10000, 11000)}-{random.randint(13, 15):02}-{random.randint(32, 35):02}",
+            )
+        elif type == DataType.TIME:
+            return DataGenerator(
+                DataType.TIME,
+                lambda valid: fake_ru.time()
+                if valid
+                else f"{random.randint(24, 99):02}:{random.randint(60, 99):02}:{random.randint(60, 99):02}",
+            )
+        elif type == DataType.URL:
+            return DataGenerator(
+                DataType.URL, lambda valid: fake_ru.url() if valid else "not.a.url"
+            )
 
-    def generate_data(self, valid: bool):
-        return (
-            self.fake_ru.numerify("+7 (###) #### ## ##")
-            if valid
-            else self.fake_ru.numerify("+7 (###) #### ## ##").replace("+7", "a")
-        )
+        #  FIX: incorect type format
+        elif type == DataType.VEHICLE_NUMBER:
+            return DataGenerator(
+                DataType.TIME,
+                lambda valid: fake_ru.license_plate_car()
+                if valid
+                else "".join(random.choice("!@#$%^&*()") for _ in range(9)),
+            )
+        elif type == DataType.PASSWORD:
+            return DataGenerator(
+                DataType.PASSWORD,
+                lambda valid: fake_ru.password() if valid else fake_ru.password()[5:],
+            )
+        elif type == DataType.MAC_ADDRESS:
+            return DataGenerator(
+                DataType.MAC_ADDRESS,
+                lambda valid: fake_ru.mac_address()
+                if valid
+                else fake_ru.mac_address()[5:],
+            )
 
-
-class AddressGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.ADDRESS)
-
-    def generate_data(self, valid: bool):
-        return (
-            self.fake_ru.address()
-            if valid
-            else f"Inv@lid Addr#ss {random.randint(1000, 9999)}"
-        )
-
-
-class BirthdateGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.BIRTHDATE)
-
-    def generate_data(self, valid: bool):
-        return (
-            str(self.fake_ru.date_of_birth().strftime("%d.%m.%Y"))
-            if valid
-            else str(self.fake_ru.date_of_birth())
-        )
-
-
-class PassportGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.PASSPORT)
-
-    def generate_data(self, valid: bool):
-        return (
-            (lambda s: s[:4].replace(" ", "") +
-             s[4:])(self.fake_ru.passport_number())
-            if valid
-            else f"{''.join(random.choice('123456789') for _ in range(4))} {''.join(random.choice('ABCDEF') for _ in range(6))}"
-        )
-
-
-class PostcodeGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.POSTCODE)
-
-    def generate_data(self, valid: bool):
-        return (
-            self.fake_ru.postcode()
-            if valid
-            else f"{''.join(random.choice('ABCDEF') for _ in range(6))}"
-        )
-
-
-class CountryGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.COUNTRY)
-
-    def generate_data(self, valid: bool):
-        return self.fake_en.country() if valid else "Not a Country"
-
-
-class SNILSGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.SNILS)
-
-    def generate_data(self, valid: bool):
-        snils = self.fake_ru.snils()
-        return (
-            f"{snils[:3]}-{snils[3:6]}-{snils[6:9]} {snils[9:]}"
-            if valid
-            else self.fake_ru.numerify(text="########")
-        )
-
-
-class INNGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.INN)
-
-    def generate_data(self, valid: bool):
-        return (
-            self.fake_ru.businesses_inn()
-            if valid
-            else self.fake_ru.numerify(text="#######")
-        )
-
-
-class BankCardGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.BANK_CARD)
-
-    def generate_data(self, valid: bool):
-        credit_card = self.fake_ru.credit_card_number()
-        formatted_credit_card = " ".join(
-            credit_card[i: i + 4] for i in range(0, len(credit_card), 4)
-        )
-        return (
-            formatted_credit_card
-            if valid
-            else "4" + "".join(random.choice("ABCDEF") for _ in range(15))
-        )
-
-
-class IBANGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.IBAN)
-
-    def generate_data(self, valid: bool):
-        country_code = "RU"
-        check_digit = f"{random.randint(0, 999999):06d}"
-        bank_code = f"{random.randint(10000000, 99999999):08d}"
-        account_number = f"{random.randint(10000000, 99999999):08d}"
-        iban = f"{country_code}{check_digit}{bank_code}{account_number}"
-        return " ".join(
-            iban[i: i + 4] for i in range(0, len(iban), 4)
-        ) if valid else "GBXX ABCD 1234 5678"
-
-
-class PaymentAmountGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.PAYMENT_AMOUNT)
-
-    def generate_data(self, valid: bool):
-        return (
-            "{:.2f}".format(self.fake_ru.pyfloat(
-                positive=True, max_value=10000))
-            if valid
-            else "{:.2f}".format(self.fake_ru.pyfloat(positive=False, max_value=0))
-        )
-
-
-class VINGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.VIN)
-
-    def generate_data(self, valid: bool):
-        return (
-            self.fake_ru.vin()
-            if valid
-            else "INVALID_V" + "".join(random.choice("O0") for _ in range(5))
-        )
-
-
-class OrderDateGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.ORDER_DATE)
-
-    def generate_data(self, valid: bool):
-        return (
-            str(self.fake_ru.date_between(start_date="-1y", end_date="today"))
-            if valid
-            else f"{random.randint(10000, 11000)}-{random.randint(13, 15):02}-{random.randint(32, 35):02}"
-        )
-
-
-class TimeGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.TIME)
-
-    def generate_data(self, valid: bool):
-        return (
-            self.fake_ru.time()
-            if valid
-            else f"{random.randint(24, 99):02}:{random.randint(60, 99):02}:{random.randint(60, 99):02}"
-        )
-
-
-class URLGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.URL)
-
-    def generate_data(self, valid: bool):
-        return self.fake_ru.url() if valid else "not.a.url"
-
-
-class VehicleNumberGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.VEHICLE_NUMBER)
-        self.russian_letters = 'АВЕКМНОРСТУХ'
-
-    def generate_data(self, valid: bool):
-        letters1 = self.fake_ru.bothify(
-            text='?', letters=self.russian_letters).upper()
-        digits = f"{random.randint(100, 999)}"
-        letters2 = self.fake_ru.bothify(
-            text='??', letters=self.russian_letters).upper()
-        return (
-            f"{letters1}{digits}{letters2}"
-            if valid
-            else "".join(random.choice("!@#$%^&*()") for _ in range(9))
-        )
-
-
-class PasswordGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.PASSWORD)
-
-    def generate_data(self, valid: bool):
-        return self.fake_ru.password() if valid else self.fake_ru.password()[5:]
-
-
-class MACAddressGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.MAC_ADDRESS)
-
-    def generate_data(self, valid: bool):
-        return self.fake_ru.mac_address() if valid else self.fake_ru.mac_address()[5:]
-
-
-class CoordinatesGenerator(DataGenerator):
-    def __init__(self):
-        super().__init__(DataType.COORDINATES)
-
-    def generate_data(self, valid: bool):
-        return (
-            f"{self.fake_ru.latitude()}, {self.fake_ru.longitude()}"
-            if valid
-            else "InvalidCoordinates"
-        )
+        #  TODO: fake coordinate genertion
+        elif type == DataType.COORDINATES:
+            return DataGenerator(
+                DataType.COORDINATES,
+                lambda valid: f"{fake_ru.latitude()}, {fake_ru.longitude()}"
+                if valid
+                else "InvalidCoordinates",
+            )
